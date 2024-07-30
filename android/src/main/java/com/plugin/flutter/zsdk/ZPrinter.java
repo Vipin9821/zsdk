@@ -27,6 +27,11 @@ import java.util.Map;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.Result;
 
+import android.os.Looper;
+
+import com.zebra.sdk.comm.BluetoothConnection;
+import com.zebra.sdk.comm.Connection;
+
 /**
  * Created by luis901101 on 2019-12-18.
  * @noinspection unused
@@ -310,6 +315,63 @@ public class ZPrinter
             catch(Exception e)
             {
                 onException(e, printer);
+            }
+        }).start();
+    }
+
+
+    public void sendZplOverBluetooth(final String theBtMacAddress, final  String path2,final PrinterSettings settings) {
+
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                 System.out.println("******* STARTING *******");
+            final String    path =
+            //  " /data/user/0/com.plugin.flutter.zsdkexample/cache/file_picker/1722324870215/Decoding_Budget_2024_Treelife.pdf";
+            "/data/user/0/com.plugin.flutter.zsdkexample/app_flutter/some.pdf";
+                       System.out.println(path);
+                   if(!new File(path).exists()) throw new FileNotFoundException("The file: "+ path +"doesn't exist");
+                 System.out.println("Found the path here.");
+                 
+                    // Instantiate connection for given Bluetooth&reg; MAC Address.
+                    Connection thePrinterConn = new BluetoothConnection(theBtMacAddress);
+
+                    // Initialize
+                    Looper.prepare();
+
+                    // Open the connection - physical connection is established here.
+                    thePrinterConn.open();
+                   
+
+                    printerConf.init(thePrinterConn);
+                     settings.apply(thePrinterConn);
+                    ZebraPrinter printer = ZebraPrinterFactory.getInstance(thePrinterConn);
+                    // This example prints "This is a ZPL test." near the top of the label.
+                    System.out.println("********* Fetching images from PDF *********");
+                     List<ImageData> list = PdfUtils.getImagesFromPdf(context, path, printerConf.getWidth(), printerConf.getHeight(), printerConf.getOrientation(), true);
+                    //  List<ImageData> list = PdfUtils.getImagesFromPdf(context, path,1000,1000, printerConf.getOrientation(), true);
+                      System.out.println("********* IMAGES FETCHED *********");
+                        for(int i = 0; i < list.size(); ++i) {
+                        System.out.println("********* SENDING PRINT REQ. *********");
+                    printer.printImage(new ZebraImageAndroid(list.get(i).bitmap), 0, 0, -1, -1, false);//Prints image directly from bitmap
+                    System.out.println("********* DONE PRINT REQ. *********");                       
+                        printer.printImage(list.get(i).path, 0, 0);//Prints image from file path
+                        }
+                 
+ 
+
+                    // Make sure the data got to the printer before closing the connection
+                    Thread.sleep(500);
+
+                    // Close the connection to release resources.
+                    thePrinterConn.close();
+
+                    Looper.myLooper().quit();
+                } catch (Exception e) {
+                       System.out.println(e);
+                    // Handle communications error here.
+                    e.printStackTrace();
+                }
             }
         }).start();
     }

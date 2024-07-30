@@ -42,7 +42,8 @@ public class PdfUtils
             // Long running
             Bitmap bitmap = page.renderBitmap(width, height, rectF);
             Matrix matrix = new Matrix();
-            matrix.postRotate(orientation == Orientation.LANDSCAPE ? 90 : 0);
+            matrix.postRotate(0);
+           // matrix.postRotate(orientation == Orientation.LANDSCAPE ? 90 : 0);
             Bitmap rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
 
             File outputFile = new File(context.getExternalCacheDir(), "/pages/"+"page-"+i+".jpg");

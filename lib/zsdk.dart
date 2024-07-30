@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:zsdk/src/enumerators/cause.dart';
 import 'package:zsdk/src/enumerators/error_code.dart';
@@ -17,14 +18,14 @@ export 'package:zsdk/src/enumerators/orientation.dart';
 export 'package:zsdk/src/enumerators/power_up_action.dart';
 export 'package:zsdk/src/enumerators/print_method.dart';
 export 'package:zsdk/src/enumerators/print_mode.dart';
+export 'package:zsdk/src/enumerators/reprint_mode.dart';
+export 'package:zsdk/src/enumerators/status.dart';
+export 'package:zsdk/src/enumerators/virtual_device.dart';
+export 'package:zsdk/src/enumerators/zpl_mode.dart';
 export 'package:zsdk/src/printer_conf.dart';
 export 'package:zsdk/src/printer_response.dart';
 export 'package:zsdk/src/printer_settings.dart';
-export 'package:zsdk/src/enumerators/reprint_mode.dart';
-export 'package:zsdk/src/enumerators/virtual_device.dart';
-export 'package:zsdk/src/enumerators/status.dart';
 export 'package:zsdk/src/status_info.dart';
-export 'package:zsdk/src/enumerators/zpl_mode.dart';
 
 class ZSDK {
   static const int DEFAULT_ZPL_TCP_PORT = 9100;
@@ -46,6 +47,10 @@ class ZSDK {
       "getPrinterSettingsOverTCPIP";
   static const String _SET_PRINTER_SETTINGS_OVER_TCP_IP =
       "setPrinterSettingsOverTCPIP";
+
+  static const String _SET_PRINTER_SETTINGS_OVER_BLUETOOTH =
+      "printZPLOverBluetooth";
+
   static const String _DO_MANUAL_CALIBRATION_OVER_TCP_IP =
       "doManualCalibrationOverTCPIP";
   static const String _PRINT_CONFIGURATION_LABEL_OVER_TCP_IP =
@@ -154,6 +159,25 @@ class ZSDK {
           .timeout(
               timeout ??= const Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
               onTimeout: () => _onTimeout(timeout: timeout));
+
+//-------------------------------------------
+
+  Future printZPLOverBluetooth({
+    required String address,
+    Duration? timeout,
+    String path = '',
+    required PrinterSettings settings,
+  }) =>
+      _channel
+          .invokeMethod(
+              _SET_PRINTER_SETTINGS_OVER_BLUETOOTH,
+              <String, dynamic>{_address: address, path: path}
+                ..addAll(settings.toMap()))
+          .timeout(
+              timeout ??= const Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
+              onTimeout: () => _onTimeout(timeout: timeout));
+
+//-------------------------------------------
 
   Future resetPrinterSettingsOverTCPIP(
           {required String address, int? port, Duration? timeout}) =>

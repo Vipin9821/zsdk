@@ -22,4 +22,7 @@ public class ImageData {
         this.inWidth = inWidth;
         this.inHeight = inHeight;
     }
+
+
+
 }
