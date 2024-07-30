@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:zsdk/zsdk.dart' as Printer;
 
 void main() {
@@ -39,28 +38,6 @@ enum OperationStatus {
   SUCCESS,
   ERROR,
   NONE,
-}
-
-Future<String?> saveImageFromRootBundle(
-    String assetPath, String fileName) async {
-  try {
-    // Load image data from rootBundle
-    final ByteData data = await rootBundle.load(assetPath);
-    final Uint8List bytes = data.buffer.asUint8List();
-
-    // Get the directory to save the file
-    final directory = await getApplicationDocumentsDirectory();
-    final filePath = '${directory.path}/$fileName';
-
-    // Write the image data to the file
-    final File file = File(filePath);
-    await file.writeAsBytes(bytes);
-
-    return file.uri.path;
-    // return filePath;
-  } catch (e) {
-    print('Error saving image: $e');
-  }
 }
 
 class _MyAppState extends State<MyApp> {
@@ -138,27 +115,6 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade300,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          try {
-            print(pathController.text);
-
-            final path =
-                await saveImageFromRootBundle('assets/some2.pdf', 'some.pdf');
-            print('Image saved to ===================> . ${path}');
-            if (path != '') {
-              await widget.zsdk.printZPLOverBluetooth(
-                address: 'D8:B6:73:9D:B0:3A',
-                path: path ?? '',
-                settings: Printer.PrinterSettings.defaultSettings(),
-              );
-            }
-          } catch (e) {
-            print(e);
-          }
-        },
-        child: const Icon(Icons.print),
-      ),
       appBar: AppBar(
         title: const Text('Zebra SDK Plugin example app'),
       ),

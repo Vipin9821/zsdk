@@ -12,9 +12,12 @@ import com.zebra.sdk.printer.PrinterStatus;
 import com.zebra.sdk.printer.SGD;
 import com.zebra.sdk.printer.ZebraPrinter;
 import com.zebra.sdk.printer.ZebraPrinterFactory;
+import com.zebra.sdk.graphics.ZebraImageFactory;
+ 
 import com.zebra.sdk.printer.ZebraPrinterLinkOs;
 import com.zebra.sdk.util.internal.FileUtilities;
-
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,6 +34,8 @@ import android.os.Looper;
 
 import com.zebra.sdk.comm.BluetoothConnection;
 import com.zebra.sdk.comm.Connection;
+
+ 
 
 /**
  * Created by luis901101 on 2019-12-18.
@@ -320,61 +325,89 @@ public class ZPrinter
     }
 
 
-    public void sendZplOverBluetooth(final String theBtMacAddress, final  String path2,final PrinterSettings settings) {
+public void sendZplOverBluetooth(final String theBtMacAddress, final String imagePath, final PrinterSettings settings) {
 
-        new Thread(new Runnable() {
-            public void run() {
-                try {
-                 System.out.println("******* STARTING *******");
-            final String    path =
-            //  " /data/user/0/com.plugin.flutter.zsdkexample/cache/file_picker/1722324870215/Decoding_Budget_2024_Treelife.pdf";
-            "/data/user/0/com.plugin.flutter.zsdkexample/app_flutter/some.pdf";
-                       System.out.println(path);
-                   if(!new File(path).exists()) throw new FileNotFoundException("The file: "+ path +"doesn't exist");
-                 System.out.println("Found the path here.");
-                 
-                    // Instantiate connection for given Bluetooth&reg; MAC Address.
-                    Connection thePrinterConn = new BluetoothConnection(theBtMacAddress);
-
-                    // Initialize
-                    Looper.prepare();
-
-                    // Open the connection - physical connection is established here.
-                    thePrinterConn.open();
-                   
-
-                    printerConf.init(thePrinterConn);
-                     settings.apply(thePrinterConn);
-                    ZebraPrinter printer = ZebraPrinterFactory.getInstance(thePrinterConn);
-                    // This example prints "This is a ZPL test." near the top of the label.
-                    System.out.println("********* Fetching images from PDF *********");
-                     List<ImageData> list = PdfUtils.getImagesFromPdf(context, path, printerConf.getWidth(), printerConf.getHeight(), printerConf.getOrientation(), true);
-                    //  List<ImageData> list = PdfUtils.getImagesFromPdf(context, path,1000,1000, printerConf.getOrientation(), true);
-                      System.out.println("********* IMAGES FETCHED *********");
-                        for(int i = 0; i < list.size(); ++i) {
-                        System.out.println("********* SENDING PRINT REQ. *********");
-                    printer.printImage(new ZebraImageAndroid(list.get(i).bitmap), 0, 0, -1, -1, false);//Prints image directly from bitmap
-                    System.out.println("********* DONE PRINT REQ. *********");                       
-                        printer.printImage(list.get(i).path, 0, 0);//Prints image from file path
-                        }
-                 
- 
-
-                    // Make sure the data got to the printer before closing the connection
-                    Thread.sleep(500);
-
-                    // Close the connection to release resources.
-                    thePrinterConn.close();
-
-                    Looper.myLooper().quit();
-                } catch (Exception e) {
-                       System.out.println(e);
-                    // Handle communications error here.
-                    e.printStackTrace();
+    new Thread(new Runnable() {
+        public void run() {
+            try {
+                System.out.println("******* STARTING *******");
+                System.out.println("******** USING IMAGE PATH  ******** => "+  imagePath);
+                // Check if the file exists
+                File imageFile = new File(imagePath);
+                if (!imageFile.exists()) {
+                    throw new FileNotFoundException("The file: " + imagePath + " doesn't exist");
                 }
+                System.out.println("******** IMAGE PATH FOUND ********");
+
+                // Instantiate connection for given Bluetooth® MAC Address.
+                Connection thePrinterConn = new BluetoothConnection(theBtMacAddress);
+
+                // Initialize
+                Looper.prepare();
+
+                // Open the connection - physical connection is established here.
+                thePrinterConn.open();
+
+                // Set the printer language to ZPL
+                changePrinterLanguage(thePrinterConn, SGDParams.VALUE_ZPL_LANGUAGE);
+
+                 System.out.println("******** PRINTER LANGUAGE UPDATED TO ZPL ********"); 
+
+                // Initialize printer configuration
+                printerConf.init(thePrinterConn);
+                settings.apply(thePrinterConn);
+
+                ZebraPrinter printer = ZebraPrinterFactory.getInstance(thePrinterConn); 
+               
+                // Decode the image from the file path
+                Bitmap bitmap = BitmapFactory.decodeStream(new FileInputStream(imageFile));
+                if (bitmap == null) {
+                    throw new Exception("Failed to decode the image from the path: " + imagePath);
+                }
+
+                 PrinterStatus printerStatus = printer.getCurrentStatus();
+
+                 ///for ZQ300 series printer only / 72mm-80mm paper roll
+                int printableWidth = 576; 
+                // Get image dimensions
+                int imageWidth = bitmap.getWidth();
+                int imageHeight = bitmap.getHeight();
+
+                // Calculate new height to maintain aspect ratio
+                int newWidth = printableWidth;
+                int newHeight = (imageHeight * newWidth) / imageWidth;
+
+                // Resize the image based on the printer settings
+                Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true);
+
+                System.out.println("********* SENDING PRINT REQ. *********");
+                // Convert the resized Bitmap to ZebraImageAndroid
+                ZebraImageAndroid image = new ZebraImageAndroid(resizedBitmap);
+
+                    printer.printImage( image, 0, 0, -1, -1, false);
+                // printer.printImage(new ZebraImageAndroid(bufferedImage), 0, 0, -1, -1, false);
+                System.out.println("********* DONE PRINT REQ. *********");
+
+                // Make sure the data got to the printer before closing the connection
+                Thread.sleep(500);
+
+                // Close the connection to release resources.
+                thePrinterConn.close();
+
+                Looper.myLooper().quit();
+            } catch (Exception e) {
+                System.out.println(e);
+                // Handle communications error here.
+                e.printStackTrace();
             }
-        }).start();
-    }
+        }
+    }).start();
+}
+
+// Method to resize the bitmap based on the printer's settings
+private Bitmap resizeBitmap(Bitmap bitmap, int width, int height) {
+    return Bitmap.createScaledBitmap(bitmap, width, height, true);
+}
 
     /** @noinspection IOStreamConstructor*/
     public void printZplFileOverTCPIP(final String filePath, final String address, final Integer port) {

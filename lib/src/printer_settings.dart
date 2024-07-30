@@ -265,10 +265,11 @@ class PrinterSettings {
         tearOff: 0,
         mediaType: MediaType.MARK,
         printMethod: PrintMethod.DIRECT_THERMAL,
-        printWidth: 568, //600
+        devicePrintHeadResolution: '12dpmm',
+        printWidth: 576, //600
         labelLength: 1202,
         labelLengthMax: 39,
-        zplMode: ZPLMode.ZPL_II,
+        zplMode: ZPLMode.ZPL,
         powerUpAction: PowerUpAction.NO_MOTION,
         headCloseAction: HeadCloseAction.NO_MOTION,
         labelTop: 0,

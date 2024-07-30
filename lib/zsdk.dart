@@ -48,8 +48,7 @@ class ZSDK {
   static const String _SET_PRINTER_SETTINGS_OVER_TCP_IP =
       "setPrinterSettingsOverTCPIP";
 
-  static const String _SET_PRINTER_SETTINGS_OVER_BLUETOOTH =
-      "printZPLOverBluetooth";
+  static const String _PRINT_IMAGEL_OVER_BLUETOOTH = "printImageOverBluetooth";
 
   static const String _DO_MANUAL_CALIBRATION_OVER_TCP_IP =
       "doManualCalibrationOverTCPIP";
@@ -61,6 +60,7 @@ class ZSDK {
   static const String _filePath = "filePath";
   static const String _data = "data";
   static const String _address = "address";
+  static const String _imageFilePath = 'imageFilePath';
   static const String _port = "port";
   static const String _cmWidth = "cmWidth";
   static const String _cmHeight = "cmHeight";
@@ -161,21 +161,22 @@ class ZSDK {
               onTimeout: () => _onTimeout(timeout: timeout));
 
 //-------------------------------------------
-
+  ///Method only tested for Zebra ZQ300 series printer only
   Future printZPLOverBluetooth({
     required String address,
     Duration? timeout,
     String path = '',
     required PrinterSettings settings,
-  }) =>
-      _channel
-          .invokeMethod(
-              _SET_PRINTER_SETTINGS_OVER_BLUETOOTH,
-              <String, dynamic>{_address: address, path: path}
-                ..addAll(settings.toMap()))
-          .timeout(
-              timeout ??= const Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
-              onTimeout: () => _onTimeout(timeout: timeout));
+  }) {
+    return _channel
+        .invokeMethod(
+            _PRINT_IMAGEL_OVER_BLUETOOTH,
+            <String, dynamic>{_address: address, _imageFilePath: path}
+              ..addAll(settings.toMap()))
+        .timeout(
+            timeout ??= const Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
+            onTimeout: () => _onTimeout(timeout: timeout));
+  }
 
 //-------------------------------------------
 
