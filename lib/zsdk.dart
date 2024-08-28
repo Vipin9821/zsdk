@@ -61,6 +61,7 @@ class ZSDK {
   static const String _data = "data";
   static const String _address = "address";
   static const String _imageFilePath = 'imageFilePath';
+  static const String _itemCount = 'itemCount';
   static const String _port = "port";
   static const String _cmWidth = "cmWidth";
   static const String _cmHeight = "cmHeight";
@@ -164,15 +165,19 @@ class ZSDK {
   ///Method only tested for Zebra ZQ300 series printer only
   Future printZPLOverBluetooth({
     required String address,
+    required String itemCount,
+    required String path,
     Duration? timeout,
-    String path = '',
     required PrinterSettings settings,
   }) {
     return _channel
         .invokeMethod(
             _PRINT_IMAGEL_OVER_BLUETOOTH,
-            <String, dynamic>{_address: address, _imageFilePath: path}
-              ..addAll(settings.toMap()))
+            <String, dynamic>{
+              _address: address,
+              _imageFilePath: path,
+              _itemCount: itemCount,
+            }..addAll(settings.toMap()))
         .timeout(
             timeout ??= const Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
             onTimeout: () => _onTimeout(timeout: timeout));

@@ -325,7 +325,7 @@ public class ZPrinter
     }
 
 
-public void sendZplOverBluetooth(final String theBtMacAddress, final String imagePath, final PrinterSettings settings) {
+public void sendZplOverBluetooth(final String theBtMacAddress, final String imagePath, final PrinterSettings settings,final int itemCount) {
 
     new Thread(new Runnable() {
         public void run() {
@@ -377,8 +377,11 @@ public void sendZplOverBluetooth(final String theBtMacAddress, final String imag
                 int newWidth = printableWidth;
                 int newHeight = (imageHeight * newWidth) / imageWidth;
 
+                int calItemHeight = itemCount * 100;
+
+                int finalHeight = calItemHeight + newHeight; 
                 // Resize the image based on the printer settings
-                Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true);
+                Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, newWidth, finalHeight, true);
 
                 System.out.println("********* SENDING PRINT REQ. *********");
                 // Convert the resized Bitmap to ZebraImageAndroid
