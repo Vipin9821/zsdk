@@ -165,7 +165,7 @@ class ZSDK {
   ///Method only tested for Zebra ZQ300 series printer only
   Future printZPLOverBluetooth({
     required String address,
-    required String itemCount,
+    required int itemCount,
     required String path,
     Duration? timeout,
     required PrinterSettings settings,
