@@ -62,6 +62,7 @@ class ZSDK {
   static const String _address = "address";
   static const String _imageFilePath = 'imageFilePath';
   static const String _itemCount = 'itemCount';
+  static const String _workDir = 'workDir';
   static const String _port = "port";
   static const String _cmWidth = "cmWidth";
   static const String _cmHeight = "cmHeight";
@@ -167,6 +168,7 @@ class ZSDK {
     required String address,
     required int itemCount,
     required String path,
+    required String workDir,
     Duration? timeout,
     required PrinterSettings settings,
   }) {
@@ -177,6 +179,7 @@ class ZSDK {
               _address: address,
               _imageFilePath: path,
               _itemCount: itemCount,
+              _workDir: workDir,
             }..addAll(settings.toMap()))
         .timeout(
             timeout ??= const Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),

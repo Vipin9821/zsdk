@@ -32,6 +32,9 @@ import io.flutter.plugin.common.MethodChannel.Result;
 
 import android.os.Looper;
 
+import java.io.FileOutputStream;
+
+
 import com.zebra.sdk.comm.BluetoothConnection;
 import com.zebra.sdk.comm.Connection;
 
@@ -325,7 +328,7 @@ public class ZPrinter
     }
 
 
-public void sendZplOverBluetooth(final String theBtMacAddress, final String imagePath, final PrinterSettings settings,final int itemCount) {
+public void sendZplOverBluetooth(final String theBtMacAddress, final String imagePath, final PrinterSettings settings,final int itemCount, final String workDir) {
 
     new Thread(new Runnable() {
         public void run() {
@@ -382,6 +385,37 @@ public void sendZplOverBluetooth(final String theBtMacAddress, final String imag
                 int finalHeight = calItemHeight + newHeight; 
                 // Resize the image based on the printer settings
                 Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, newWidth, finalHeight, true);
+
+
+
+
+        File appDir = new File(workDir, "image"); // Create or access the directory in your app's internal storage
+                if (!appDir.exists()) {
+                    appDir.mkdir(); // Create the directory if it doesn't exist
+                }
+
+                File imageFileToSave = new File(appDir, "some.jpeg");
+                FileOutputStream fos = null;
+                try {
+                    fos = new FileOutputStream(imageFileToSave);
+                    resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos); // Compress the bitmap and write it to the file
+                    fos.flush();
+                    System.out.println("********* IMAGE SAVED TO APPLICATION DIRECTORY *********");
+                } catch (Exception e) {
+
+                      System.out.println("********* ERROR IN DIR *********");
+                    e.printStackTrace();
+                } finally 
+                {
+                       System.out.println("********* CLOSING *********");
+                    if (fos != null) {
+                        fos.close();
+                    }
+                }
+
+
+
+
 
                 System.out.println("********* SENDING PRINT REQ. *********");
                 // Convert the resized Bitmap to ZebraImageAndroid
