@@ -143,7 +143,7 @@ public class ZsdkPlugin implements FlutterPlugin, MethodCallHandler {
               call.argument(_address),
               call.argument(_imageFilePath),
               new PrinterSettings(call.arguments()),
-              call.argument(_itemCount), 
+              call.argument(_itemCount)
           );
           break;
 
