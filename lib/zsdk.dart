@@ -166,25 +166,36 @@ class ZSDK {
   ///Method only tested for Zebra ZQ300 series printer only
   Future printZPLOverBluetooth({
     required String address,
-    required int itemCount,
-    required String path,
-    required String workDir,
     Duration? timeout,
+    String path = '',
     required PrinterSettings settings,
   }) {
-    return _channel
-        .invokeMethod(
-            _PRINT_IMAGEL_OVER_BLUETOOTH,
-            <String, dynamic>{
-              _address: address,
-              _imageFilePath: path,
-              _itemCount: itemCount,
-              _workDir: workDir,
-            }..addAll(settings.toMap()))
-        .timeout(
-            timeout ??= const Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
-            onTimeout: () => _onTimeout(timeout: timeout));
+    return _channel.invokeMethod(
+        _PRINT_IMAGEL_OVER_BLUETOOTH,
+        <String, dynamic>{_address: address, _imageFilePath: path}
+          ..addAll(settings.toMap()));
   }
+  // Future printZPLOverBluetooth({
+  //   required String address,
+  //   required int itemCount,
+  //   required String path,
+  //   required String workDir,
+  //   Duration? timeout,
+  //   required PrinterSettings settings,
+  // }) {
+  //   return _channel
+  //       .invokeMethod(
+  //           _PRINT_IMAGEL_OVER_BLUETOOTH,
+  //           <String, dynamic>{
+  //             _address: address,
+  //             _imageFilePath: path,
+  //             _itemCount: itemCount,
+  //             _workDir: workDir,
+  //           }..addAll(settings.toMap()))
+  //       .timeout(
+  //           timeout ??= const Duration(seconds: DEFAULT_CONNECTION_TIMEOUT),
+  //           onTimeout: () => _onTimeout(timeout: timeout));
+  // }
 
 //-------------------------------------------
 

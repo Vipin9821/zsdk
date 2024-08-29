@@ -34,6 +34,7 @@ import android.os.Looper;
 
 import java.io.FileOutputStream;
 
+import io.flutter.plugin.common.MethodChannel.Result;
 
 import com.zebra.sdk.comm.BluetoothConnection;
 import com.zebra.sdk.comm.Connection;
@@ -328,18 +329,21 @@ public class ZPrinter
     }
 
 
-public void sendZplOverBluetooth(final String theBtMacAddress, final String imagePath, final PrinterSettings settings,final int itemCount, final String workDir) {
+public void sendZplOverBluetooth(final String theBtMacAddress, final String imagePath, final PrinterSettings settings, Result result) {
 
     new Thread(new Runnable() {
         public void run() {
             try {
                 System.out.println("******* STARTING *******");
+
                 System.out.println("******** USING IMAGE PATH  ******** => "+  imagePath);
+
                 // Check if the file exists
                 File imageFile = new File(imagePath);
                 if (!imageFile.exists()) {
                     throw new FileNotFoundException("The file: " + imagePath + " doesn't exist");
                 }
+
                 System.out.println("******** IMAGE PATH FOUND ********");
 
                 // Instantiate connection for given Bluetooth® MAC Address.
@@ -354,11 +358,11 @@ public void sendZplOverBluetooth(final String theBtMacAddress, final String imag
                 // Set the printer language to ZPL
                 changePrinterLanguage(thePrinterConn, SGDParams.VALUE_ZPL_LANGUAGE);
 
-                 System.out.println("******** PRINTER LANGUAGE UPDATED TO ZPL ********"); 
+                System.out.println("******** PRINTER LANGUAGE UPDATED TO ZPL ********"); 
 
                 // Initialize printer configuration
                 printerConf.init(thePrinterConn);
-                settings.apply(thePrinterConn);
+                // settings.apply(thePrinterConn);
 
                 ZebraPrinter printer = ZebraPrinterFactory.getInstance(thePrinterConn); 
                
@@ -370,68 +374,62 @@ public void sendZplOverBluetooth(final String theBtMacAddress, final String imag
 
                  PrinterStatus printerStatus = printer.getCurrentStatus();
 
-                 ///for ZQ300 series printer only / 72mm-80mm paper roll
+                ///for ZQ300 series printer only / 72mm-80mm paper roll
                 int printableWidth = 576; 
+
                 // Get image dimensions
                 int imageWidth = bitmap.getWidth();
                 int imageHeight = bitmap.getHeight();
 
                 // Calculate new height to maintain aspect ratio
                 int newWidth = printableWidth;
-                int newHeight = (imageHeight * newWidth) / imageWidth;
+                int newHeight =   (imageHeight * newWidth) / imageWidth;
 
-                int calItemHeight = itemCount * 100;
-
-                int finalHeight = calItemHeight + newHeight; 
                 // Resize the image based on the printer settings
-                Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, newWidth, finalHeight, true);
-
-
-
-
-        File appDir = new File(workDir, "image"); // Create or access the directory in your app's internal storage
-                if (!appDir.exists()) {
-                    appDir.mkdir(); // Create the directory if it doesn't exist
-                }
-
-                File imageFileToSave = new File(appDir, "some.jpeg");
-                FileOutputStream fos = null;
-                try {
-                    fos = new FileOutputStream(imageFileToSave);
-                    resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos); // Compress the bitmap and write it to the file
-                    fos.flush();
-                    System.out.println("********* IMAGE SAVED TO APPLICATION DIRECTORY *********");
-                } catch (Exception e) {
-
-                      System.out.println("********* ERROR IN DIR *********");
-                    e.printStackTrace();
-                } finally 
-                {
-                       System.out.println("********* CLOSING *********");
-                    if (fos != null) {
-                        fos.close();
-                    }
-                }
-
-
-
-
+                Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true);
 
                 System.out.println("********* SENDING PRINT REQ. *********");
+
                 // Convert the resized Bitmap to ZebraImageAndroid
                 ZebraImageAndroid image = new ZebraImageAndroid(resizedBitmap);
 
-                    printer.printImage( image, 0, 0, -1, -1, false);
-                // printer.printImage(new ZebraImageAndroid(bufferedImage), 0, 0, -1, -1, false);
-                System.out.println("********* DONE PRINT REQ. *********");
+                printer.storeImage("E:TEMP", image, -1, -1);
 
-                // Make sure the data got to the printer before closing the connection
+                // print zpl content by converting imagr into GRF format
+                String zplString =
+                    "^XA"                                          // Start format
+                    + "^PW" + ((int) printableWidth)               // Print width
+                    + "^MNN"                                       // Media tracking mode (Mark-Sense/Continuous)
+                    + "^LL" + newHeight                             // Label length (height)
+                    + "^PR2"                                        // Print rate (equivalent to SPEED 2)
+                    + "^MD50"                                       // Darkness setting (equivalent to TONE 50)
+                    + "^FO20,20^XG" + "TEMP" + ",1,1^FS"            // Draw graphic stored on the printer
+                    + "^XZ";                                        // End format
+
+                    //send the commands to the printer, the image will be printed now
+                    thePrinterConn.write(zplString.getBytes());
+
+                    
+                    //delete the image at the end to prevent printer memory sutaration
+                    thePrinterConn.write(("! U1 do \"file.delete\" \"E:TEMP\"\r\n").getBytes());
+                    
+                    //close the connection with the printer
+                    thePrinterConn.close();
+
+                    resizedBitmap.recycle();
+                    imageFile.delete();
+
+
+                //  printer.printImage( image, 0, 0, newWidth, newHeight, false);
+                // printer.printImage(new ZebraImageAndroid(bufferedImage), 0, 0, -1, -1, false);
+               
+                System.out.println("********* DONE PRINT REQ. *********");
+ 
                 Thread.sleep(500);
 
-                // Close the connection to release resources.
-                thePrinterConn.close();
-
                 Looper.myLooper().quit();
+
+                result.success(true);
             } catch (Exception e) {
                 System.out.println(e);
                 // Handle communications error here.

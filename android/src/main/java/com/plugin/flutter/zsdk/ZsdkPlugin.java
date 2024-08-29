@@ -61,9 +61,7 @@ public class ZsdkPlugin implements FlutterPlugin, MethodCallHandler {
   static final String _filePath = "filePath";
   static final String _data = "data";
   static final String _address = "address";
-  static final String _imageFilePath = "imageFilePath";
-  static final String _itemCount = "itemCount";
-  static final String _workDir = "workDir";
+    static final String _imageFilePath = "imageFilePath";
   static final String _port = "port";
   static final String _cmWidth = "cmWidth";
   static final String _cmHeight = "cmHeight";
@@ -144,8 +142,7 @@ public class ZsdkPlugin implements FlutterPlugin, MethodCallHandler {
               call.argument(_address),
               call.argument(_imageFilePath),
               new PrinterSettings(call.arguments()),
-              call.argument(_itemCount),
-              call.argument(_workDir)
+              result
           );
           break;
 

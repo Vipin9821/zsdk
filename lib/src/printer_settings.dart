@@ -260,15 +260,15 @@ class PrinterSettings {
       );
 
   factory PrinterSettings.defaultSettings() => PrinterSettings(
-        darkness: 10,
+        darkness: 18,
         printSpeed: 6,
         tearOff: 0,
         mediaType: MediaType.MARK,
         printMethod: PrintMethod.DIRECT_THERMAL,
-        devicePrintHeadResolution: '12dpmm',
+        devicePrintHeadResolution: '8dpmm',
         printWidth: 576, //600
-        labelLength: 1202,
-        labelLengthMax: 39,
+        labelLength: 400,
+        labelLengthMax: 10,
         zplMode: ZPLMode.ZPL,
         powerUpAction: PowerUpAction.NO_MOTION,
         headCloseAction: HeadCloseAction.NO_MOTION,
