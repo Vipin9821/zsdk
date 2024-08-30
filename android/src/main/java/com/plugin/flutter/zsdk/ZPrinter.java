@@ -403,7 +403,7 @@ public void sendZplOverBluetooth(final String theBtMacAddress, final String imag
                     + "^LL" + newHeight                             // Label length (height)
                     + "^PR2"                                        // Print rate (equivalent to SPEED 2)
                     + "^MD50"                                       // Darkness setting (equivalent to TONE 50)
-                    + "^FO20,20^XG" + "TEMP" + ",1,1^FS"            // Draw graphic stored on the printer
+                    + "^FO0,0^XG" + "TEMP" + ",1,1^FS"              // Draw graphic stored on the printer
                     + "^XZ";                                        // End format
 
                     //send the commands to the printer, the image will be printed now
