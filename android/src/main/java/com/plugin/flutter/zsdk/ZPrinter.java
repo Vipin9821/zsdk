@@ -434,6 +434,7 @@ public void sendZplOverBluetooth(final String theBtMacAddress, final String imag
                 System.out.println(e);
                 // Handle communications error here.
                 e.printStackTrace();
+                result.error("Unable to sent print request","",null);
             }
         }
     }).start();
