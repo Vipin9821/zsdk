@@ -30,5 +30,5 @@ flutter:
       android:
         package: com.plugin.flutter.zsdk
         pluginClass: ZsdkPlugin
-      ios:
-        pluginClass: ZsdkPlugin
+      # ios:
+      #   pluginClass: ZsdkPlugin
